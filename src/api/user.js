@@ -44,3 +44,7 @@ export function doBatchDel(ids) {
         }
     })
 }
+// 查询用户所有信息
+export function doGetUserAll() {
+    return request.get('/api/user/all')
+}

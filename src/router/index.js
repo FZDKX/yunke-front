@@ -21,7 +21,7 @@ let router = createRouter({
             redirect: '/dashboard'
         },
         {
-            //路由路径
+            //路由路径，配置动态路由，传递参数
             path: '/dashboard',
             //路由路径所对应的页面
             component: DashboardViewVue,

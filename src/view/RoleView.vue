@@ -9,7 +9,7 @@
     <!-- 角色信息 -->
     <el-table :data="roleData" style="width: 100%" row-key="id" border ref="table">
         <!-- 复选框 type = selection-->
-        <el-table-column type="selection" />
+        <el-table-column type="selection"/>
         <!-- 数据 -->
         <el-table-column prop="roleName" label="角色名称" align="center" />
         <el-table-column prop="role" label="角色代码" align="center" />
@@ -152,9 +152,11 @@ const edit = async (id) => {
             // 已有权限id
             ids.value = res.data.ids;
             // 所有权限集合
-            allPerm.value = res.data.rolePermVOList;
+            allPerm.value = res.data.rolePermAllVOList;
             // 角色信息
             roleInfo.value = res.data.role;
+            console.log(ids.value)
+            console.log(allPerm.value)
         }
         permIds.value = ids.value
     })

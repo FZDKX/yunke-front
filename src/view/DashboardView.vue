@@ -6,206 +6,20 @@
             <h3 class="title">{{ title }}</h3>
             <el-menu default-active="1" style="border-right:solid 0px;" background-color="#f7fbfc" unique-opened="true"
                 :collapse="isCollapse" :collapse-transition="false" :router="true">
-                <!-- 市场活动 -->
-                <el-sub-menu index="1">
-                    <template #title>
-                        <el-icon>
-                            <Postcard />
-                        </el-icon>
-                        <span>市场活动</span>
-                    </template>
-                    <el-menu-item-group>
-                        <el-menu-item index="1-1">
-                            <el-icon>
-                                <Postcard />
-                            </el-icon>
-                            市场活动
-                        </el-menu-item>
-                        <el-menu-item index="1-2">
-                            <el-icon>
-                                <Postcard />
-                            </el-icon>
-                            市场统计
-                        </el-menu-item>
-                    </el-menu-item-group>
-                </el-sub-menu>
-
-                <!-- 线索管理 -->
-                <el-sub-menu index="2">
-                    <template #title>
-                        <el-icon>
-                            <Connection />
-                        </el-icon>
-                        <span>线索管理</span>
-                    </template>
-                    <el-menu-item-group>
-                        <el-menu-item index="2-1">
-                            <el-icon>
-                                <Connection />
-                            </el-icon>
-                            线索管理
-                        </el-menu-item>
-                        <el-menu-item index="2-2">
-                            <el-icon>
-                                <Connection />
-                            </el-icon>
-                            线索管理
-                        </el-menu-item>
-                    </el-menu-item-group>
-                </el-sub-menu>
-
-                <!-- 客户管理 -->
-                <el-sub-menu index="3">
-                    <template #title>
-                        <el-icon>
-                            <PieChart />
-                        </el-icon>
-                        <span>客户管理</span>
-                    </template>
-                    <el-menu-item-group>
-                        <el-menu-item index="3-1">
-                            <el-icon>
-                                <PieChart />
-                            </el-icon>
-                            客户管理
-                        </el-menu-item>
-                        <el-menu-item index="3-2">
-                            <el-icon>
-                                <PieChart />
-                            </el-icon>
-                            客户管理
-                        </el-menu-item>
-                    </el-menu-item-group>
-                </el-sub-menu>
-
-                <!-- 交易管理 -->
-                <el-sub-menu index="4">
-                    <template #title>
-                        <el-icon>
-                            <Notification />
-                        </el-icon>
-                        <span>交易管理</span>
-                    </template>
-                    <el-menu-item-group>
-                        <el-menu-item index="4-1">
-                            <el-icon>
-                                <Notification />
-                            </el-icon>
-                            交易管理
-                        </el-menu-item>
-                        <el-menu-item index="4-2">
-                            <el-icon>
-                                <Notification />
-                            </el-icon>
-                            交易管理
-                        </el-menu-item>
-                    </el-menu-item-group>
-                </el-sub-menu>
-
-                <!-- 产品管理 -->
-                <el-sub-menu index="5">
-                    <template #title>
-                        <el-icon>
-                            <Van />
-                        </el-icon>
-                        <span>产品管理</span>
-                    </template>
-                    <el-menu-item-group>
-                        <el-menu-item index="5-1">
-                            <el-icon>
-                                <Van />
-                            </el-icon>
-                            产品管理
-                        </el-menu-item>
-                        <el-menu-item index="5-2">
-                            <el-icon>
-                                <Van />
-                            </el-icon>
-                            产品管理
-                        </el-menu-item>
-                    </el-menu-item-group>
-                </el-sub-menu>
-
-                <!-- 字典管理 -->
-                <el-sub-menu index="6">
-                    <template #title>
-                        <el-icon>
-                            <Memo />
-                        </el-icon>
-                        <span>字典管理</span>
-                    </template>
-                    <el-menu-item-group>
-                        <el-menu-item index="6-1">
-                            <el-icon>
-                                <Memo />
-                            </el-icon>
-                            字典管理
-                        </el-menu-item>
-                        <el-menu-item index="6-2">
-                            <el-icon>
-                                <Memo />
-                            </el-icon>
-                            字典管理
-                        </el-menu-item>
-                    </el-menu-item-group>
-                </el-sub-menu>
-
                 <!-- 用户管理 -->
-                <el-sub-menu index="7">
+                <el-sub-menu :index="index" v-for="(menu, index) in menuList" :key="menu.id">
                     <template #title>
                         <el-icon>
-                            <User />
+                            <component :is="menu.icon" />
                         </el-icon>
-                        <span>用户管理</span>
+                        <span>{{ menu.name }}</span>
                     </template>
-                    <el-menu-item-group>
-                        <el-menu-item index="/dashboard/user">
-                            <el-icon>
-                                <UserFilled />
-                            </el-icon>
-                            用户管理
-                        </el-menu-item>
-                    </el-menu-item-group>
-                    <el-menu-item-group>
-                        <el-menu-item index="/dashboard/permission">
-                            <el-icon>
-                                <HelpFilled />
-                            </el-icon>
-                            权限管理
-                        </el-menu-item>
-                    </el-menu-item-group>
-                    <el-menu-item-group>
-                        <el-menu-item index="/dashboard/role">
-                            <el-icon>
-                                <Grid />
-                            </el-icon>
-                            角色管理
-                        </el-menu-item>
-                    </el-menu-item-group>
-                </el-sub-menu>
-
-                <!-- 系统管理 -->
-                <el-sub-menu index="8">
-                    <template #title>
+                    <el-menu-item :index="item.url" v-for="(item) in menu.children" :key="item.id">
                         <el-icon>
-                            <Setting />
+                            <component :is="item.icon" />
                         </el-icon>
-                        <span>系统管理</span>
-                    </template>
-                    <el-menu-item-group>
-                        <el-menu-item index="8-1">
-                            <el-icon>
-                                <Setting />
-                            </el-icon>
-                            系统管理
-                        </el-menu-item>
-                        <el-menu-item index="8-2">
-                            <el-icon>
-                                <Setting />
-                            </el-icon>
-                            系统管理
-                        </el-menu-item>
-                    </el-menu-item-group>
+                        {{ item.name }}
+                    </el-menu-item>
                 </el-sub-menu>
             </el-menu>
         </el-aside>
@@ -251,12 +65,13 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { doLogout } from '../api/login';
 // 组合式api使用 router
 import { useRouter } from 'vue-router';
 import { removeToken } from '../utils/tokenUtils';
 import { messageBox, messageTip } from '../utils/elementUtils';
+import { doGetUserAll } from '../api/user';
 // 是否折叠菜单
 const isCollapse = ref(false);
 // 标题
@@ -287,7 +102,16 @@ const logout = () => {
             })
         })
 }
-
+// 保存信息
+const menuList = ref([])
+// 页面加载时，加载用户权限信息
+onMounted(async () => {
+    await doGetUserAll().then((res) => {
+        if (res.code === 200) {
+            menuList.value = res.data.tmenuPermissions;
+        }
+    })
+})
 </script>
 
 <style scoped>

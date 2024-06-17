@@ -14,10 +14,23 @@
         <!-- 其他数据 -->
         <el-table-column property="username" label="账号" align="center" />
         <el-table-column property="name" label="姓名" align="center" show-overflow-tooltip />
-        <el-table-column property="phone" label="手机" align="center" show-overflow-tooltip />
-        <el-table-column property="email" label="邮箱" align="center" show-overflow-tooltip />
-        <el-table-column property="accountEnabled" label="状态" align="center" :formatter="stateFormat"
-            show-overflow-tooltip />
+        <!-- 角色 -->
+        <el-table-column label="角色" align="center" width="400">
+            <template #default="scope">
+                <el-button type="danger" v-if="scope.row.roles.length === 0" size="small">未分配</el-button>
+                <el-button type="primary" v-else v-for="(role, index) in scope.row.roles" size="small" :key="index">
+                    {{ role.roleName }}
+                </el-button>
+            </template>
+        </el-table-column>
+        <!-- 状态 -->
+        <el-table-column label="状态" align="center">
+            <template #default="scope">
+                <el-button type="primary" v-if="scope.row.accountEnabled === 1" size="small">启用</el-button>
+                <el-button type="danger" v-else size="small">禁用</el-button>
+            </template>
+        </el-table-column>
+
         <!-- 操作使用插槽 -->
         <el-table-column label="操作" align="center">
             <template #default="scope">
@@ -42,12 +55,6 @@
     <!-- 用户详情 -->
     <el-dialog v-model="showUserDetail" title="用户详情" width="550">
         <el-form :model="userDetail" label-width="80px" disabled="true">
-            <el-form-item label="账号">
-                <el-input v-model="userDetail.username" />
-            </el-form-item>
-            <el-form-item label="姓名">
-                <el-input v-model="userDetail.name" />
-            </el-form-item>
             <el-form-item label="手机">
                 <el-input v-model="userDetail.phone" />
             </el-form-item>
@@ -69,15 +76,11 @@
             <el-form-item label="最近登录">
                 <el-input v-model="userDetail.lastLoginTime" />
             </el-form-item>
-            <el-form-item label="状态">
-                <el-button type="primary" size="small" v-if="userDetail.accountEnabled === '启用'">启用</el-button>
-                <el-button type="danger" size="small" v-else>禁用</el-button>
-            </el-form-item>
         </el-form>
     </el-dialog>
 
     <!-- 编辑 或 新增 用户 -->
-    <el-dialog v-model="editOrAdd" :title="isEdit ? '编辑用户' : '新增用户'" width="550" @close="closeDialog">
+    <el-dialog v-model="editOrAdd" :title="isEdit ? '编辑用户' : '新增用户'" width="550" @closed="closeDialog">
         <el-form :model="userInfo" label-width="80px" ref="editOrAddRef" :rules="editOrAddRules">
             <el-form-item label="账号" prop="username">
                 <el-input v-model.trim="userInfo.username" />
@@ -101,6 +104,12 @@
                     <el-radio-button label="禁用" :value="0" />
                 </el-radio-group>
             </el-form-item>
+            <!-- 权限授予 -->
+            <el-form-item label="角色授予">
+                <el-select v-model="userInfo.roleIds" multiple placeholder="请选择角色" style="width: 550px">
+                    <el-option v-for="role in roles" :key="role.id" :label="role.roleName" :value="role.id" />
+                </el-select>
+            </el-form-item>
         </el-form>
         <div class="edit-add-button">
             <el-button type="info" @click="cancle">取消</el-button>
@@ -112,7 +121,8 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import { messageBox, messageTip } from '../utils/elementUtils';
-import { doGetUserDetails, doLoadUsers, doGetUser, doEditUser, doAddUser, doDelUser, doBatchDel } from '../api/user';
+import { doGetUserDetails, doLoadUsers, doGetUser, doEditUser, doAddUser, doDelUser, doBatchDel, doGetUserAll } from '../api/user';
+import { doGetAllRoles } from '../api/role';
 // 用户分页列表信息
 const userData = ref([])
 
@@ -139,14 +149,6 @@ const loadUsers = async () => {
             messageTip(res.message, "error")
         }
     })
-}
-// 表格状态显示
-const stateFormat = (row) => {
-    if (row.accountEnabled === 1) {
-        return '启用';
-    } else {
-        return '禁用';
-    }
 }
 
 // 用户详情
@@ -202,17 +204,41 @@ const editOrAddRules = {
 const edit = async (id) => {
     editOrAdd.value = true;
     isEdit.value = true;
+    // 获取用户信息
+    getUser(id);
+    // 加载所有角色
+    getRoles();
+}
+// 获取用户信息
+const getUser = async (id) => {
     // 查询用户信息
     await doGetUser(id).then((res) => {
         if (res.code === 200) {
+            // 查询用户信息 与 角色
             userInfo.value = res.data;
-        } else {
-            messageTip(res.message, "error")
+            // 将已有的角色ID，组成数组
+            const idArr = [];
+            userInfo.value.roles.forEach(r => idArr.push(r.id))
+            userInfo.value.roleIds = idArr;
         }
     })
 }
+
+const roles = ref([])
+// 加载所有权限
+const getRoles = async () => {
+    await doGetAllRoles().then((res) => {
+        roles.value = res.data;
+    })
+}
+
+// 点击新增按钮
 const add = () => {
+    // 不是编辑
     isEdit.value = false;
+    // 获取角色数据
+    getRoles();
+    // 打开弹窗
     editOrAdd.value = true;
 }
 
@@ -225,7 +251,10 @@ const cancle = () => {
 const closeDialog = () => {
     // 清空验证提示
     editOrAddRef.value.resetFields();
+    // 用户信息置空
     userInfo.value = {}
+    // 权限置空
+    roles.value = []
 }
 
 const userSubmit = async () => {

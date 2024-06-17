@@ -42,3 +42,8 @@ export function doDelBatchRole(ids) {
         }
     })
 }
+
+// 获取所有角色信息
+export function doGetAllRoles() {
+    return request.get("/api/role/all")
+}

@@ -96,6 +96,8 @@ const autoLogin = async () => {
                 // 跳转到主页面 /dashboard
                 router.push('/dashboard')
             } else {
+                // 登录失败，那么删除token
+                removeToken();
                 messageTip("请重新登录", "info")
             }
         })
