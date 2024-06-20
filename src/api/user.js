@@ -44,7 +44,18 @@ export function doBatchDel(ids) {
         }
     })
 }
+
 // 查询用户所有信息
 export function doGetUserAll() {
     return request.get('/api/user/all')
+}
+
+// 获取按钮权限
+export function doGetUserPerm() {
+    return request.get('/api/user/perm')
+}
+
+// 加载负责人
+export function doGetAllOwner() {
+    return request.get('/api/user/owner')
 }

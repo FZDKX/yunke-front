@@ -1,13 +1,13 @@
 <template>
     <!-- 新增菜单 -->
-    <el-button type="primary" @click="add">新增角色</el-button>
+    <el-button type="primary" @click="add" v-if="buttonList.has('role:add')">新增角色</el-button>
     <!-- 批量删除 -->
-    <el-button type="danger" @click="delBatch">批量删除</el-button>
+    <el-button type="danger" @click="delBatch" v-if="buttonList.has('role:delete')">批量删除</el-button>
 
     <br><br>
 
     <!-- 角色信息 -->
-    <el-table :data="roleData" style="width: 100%" row-key="id" border ref="table">
+    <el-table :data="roleData" style="width: 100%" row-key="id" border ref="table" v-if="buttonList.has('role:list')">
         <!-- 复选框 type = selection-->
         <el-table-column type="selection"/>
         <!-- 数据 -->
@@ -17,9 +17,9 @@
         <!-- 操作使用插槽 -->
         <el-table-column label="操作" align="center">
             <template #default="scope">
-                <el-button type="primary" size="small" @click="detail(scope.row.id)">权限详情</el-button>
-                <el-button type="success" size="small" @click="edit(scope.row.id)">编辑角色</el-button>
-                <el-button type="danger" size="small" @click="del(scope.row.id)">删除角色</el-button>
+                <el-button type="primary" size="small" @click="detail(scope.row.id)" v-if="buttonList.has('role:view')">权限详情</el-button>
+                <el-button type="success" size="small" @click="edit(scope.row.id)" v-if="buttonList.has('role:edit')">编辑角色</el-button>
+                <el-button type="danger" size="small" @click="del(scope.row.id)" v-if="buttonList.has('role:delete')">删除角色</el-button>
             </template>
         </el-table-column>
         <!-- 使用插槽，当表格没有数据时显示 -->
@@ -76,23 +76,32 @@ import { doAddRole, doDelBatchRole, doDelRole, doEditRolePerm, doLoadEdit, doLoa
 import { messageBox, messageTip } from '../utils/elementUtils';
 import { SetUp } from '@element-plus/icons-vue';
 import { doLoadPermAll } from '../api/permission';
+import { doGetUserPerm } from '../api/user';
 const roleData = ref([]);
 const pageSize = ref(10);
 const currentPage = ref(1);
 const total = ref(0);
 
 // 页面加载时，加载顶层菜单
+// 按钮权限
+const buttonList = ref(new Set())
 onMounted(() => {
     loadRole();
+    getUserPerm();
 })
 
+const getUserPerm = async () => {
+    await doGetUserPerm().then((res) => {
+        if(res.code === 200) {
+            buttonList.value = new Set(res.data)
+        }
+    })
+}
 const loadRole = async () => {
     await doLoadRole(currentPage.value, pageSize.value).then((res) => {
         if (res.code === 200) {
             roleData.value = res.data.list;
             total.value = res.data.total
-        } else {
-            messageTip(res.message, 'error')
         }
     })
 }
@@ -117,8 +126,6 @@ const detail = async (id) => {
     await doLoadRolePerm(id).then((res) => {
         if (res.code === 200) {
             rolePermData.value = res.data;
-        } else {
-            messageTip(res.message, 'error')
         }
     })
 }

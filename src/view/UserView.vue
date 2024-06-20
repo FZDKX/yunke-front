@@ -1,12 +1,12 @@
 <template>
     <!-- 新增用户 -->
-    <el-button type="primary" @click="add">新增用户</el-button>
+    <el-button type="primary" @click="add" v-if="buttonList.has('user:add')">新增用户</el-button>
     <!-- 批量删除 -->
-    <el-button type="danger" @click="batchDel">批量删除</el-button>
+    <el-button type="danger" @click="batchDel" v-if="buttonList.has('user:delete')">批量删除</el-button>
 
     <br><br>
     <!-- 表格 -->
-    <el-table :data="userData" style="width: 100%" @selection-change="handleSelectionChange" :stripe="true" ref="table">
+    <el-table :data="userData" style="width: 100%" @selection-change="handleSelectionChange" :stripe="true" ref="table" v-if="buttonList.has('user:list')">
         <!-- 复选框 type = selection-->
         <el-table-column type="selection" />
         <!-- 序号，type = index , 自动递增 -->
@@ -34,9 +34,9 @@
         <!-- 操作使用插槽 -->
         <el-table-column label="操作" align="center">
             <template #default="scope">
-                <el-button type="primary" @click="show(scope.row.id)" size="small">详情</el-button>
-                <el-button type="success" @click="edit(scope.row.id)" size="small">编辑</el-button>
-                <el-button type="danger" @click="del(scope.row.id)" size="small">删除</el-button>
+                <el-button type="primary" @click="show(scope.row.id)" size="small" v-if="buttonList.has('user:view')">详情</el-button>
+                <el-button type="success" @click="edit(scope.row.id)" size="small" v-if="buttonList.has('user:edit')">编辑</el-button>
+                <el-button type="danger" @click="del(scope.row.id)" size="small" v-if="buttonList.has('user:delete')">删除</el-button>
             </template>
         </el-table-column>
 
@@ -49,8 +49,7 @@
     <!-- 分页 -->
     <el-pagination background layout="prev, pager, next" :total="total" :page-size="pageSize"
         :hide-on-single-page="true" v-model:current-page="currentPage" @change="loadUsers" />
-    <!-- @prev-click="loadUsers"
-        @next-click="loadUsers"  -->
+
 
     <!-- 用户详情 -->
     <el-dialog v-model="showUserDetail" title="用户详情" width="550">
@@ -121,7 +120,7 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import { messageBox, messageTip } from '../utils/elementUtils';
-import { doGetUserDetails, doLoadUsers, doGetUser, doEditUser, doAddUser, doDelUser, doBatchDel, doGetUserAll } from '../api/user';
+import { doGetUserDetails, doLoadUsers, doGetUser, doEditUser, doAddUser, doDelUser, doBatchDel, doGetUserPerm } from '../api/user';
 import { doGetAllRoles } from '../api/role';
 // 用户分页列表信息
 const userData = ref([])
@@ -133,11 +132,24 @@ const pageSize = ref(10);
 const currentPage = ref(1);
 // 总记录条数
 const total = ref(0);
-
+// 按钮权限
+const buttonList = ref(new Set())
 // 页面加载时，加载用户列表
 onMounted(() => {
-    loadUsers()
+    // 加载权限信息
+    getUserPerm();
+    // 加载用户列表
+    loadUsers();
 })
+
+const getUserPerm = async () => {
+    await doGetUserPerm().then((res) => {
+        if(res.code === 200) {
+            buttonList.value = new Set(res.data)
+        }
+    })
+}
+
 
 // 完整
 const loadUsers = async () => {
@@ -145,8 +157,6 @@ const loadUsers = async () => {
         if (res.code === 200) {
             userData.value = res.data.list
             total.value = res.data.total
-        } else {
-            messageTip(res.message, "error")
         }
     })
 }
@@ -161,8 +171,6 @@ const show = async (id) => {
         if (res.code === 200) {
             userDetail.value = res.data
             userDetail.value.accountEnabled = userDetail.value.accountEnabled === 1 ? '启用' : '禁用';
-        } else {
-            messageTip(res.message, "error")
         }
     })
 }
@@ -267,8 +275,6 @@ const userSubmit = async () => {
                         messageTip('编辑成功', 'success')
                         editOrAdd.value = false;
                         loadUsers();
-                    } else {
-                        messageTip(res.message, 'error')
                     }
                 })
             }
@@ -284,8 +290,6 @@ const userSubmit = async () => {
                         editOrAdd.value = false;
                         // 重新加载当前页
                         loadUsers();
-                    } else {
-                        messageTip(res.message, 'error')
                     }
                 })
             }
@@ -303,8 +307,6 @@ const del = (id) => {
                 messageTip('删除成功', 'success')
                 // 重新加载当前页
                 loadUsers();
-            } else {
-                messageTip(res.message, 'error')
             }
         })
     })
@@ -331,8 +333,6 @@ const batchDel = () => {
                     messageTip('删除成功', 'success')
                     // 更新列表
                     loadUsers();
-                } else {
-                    messageTip(res.message, 'error')
                 }
             })
         })

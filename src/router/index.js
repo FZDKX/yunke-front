@@ -5,6 +5,8 @@ import DashboardViewVue from "../view/DashboardView.vue";
 import UserViewVue from "../view/UserView.vue";
 import PermissionViewVue from "../view/PermissionView.vue"
 import RoleViewVue from "../view/RoleView.vue";
+import ActivityViewVue from "../view/ActivityView.vue";
+import RemarkViewVue from "../view/RemarkView.vue";
 
 
 //定义一个变量
@@ -28,7 +30,10 @@ let router = createRouter({
             children: [
                 { path: 'user', component: UserViewVue },
                 { path: 'permission', component: PermissionViewVue},
-                { path: 'role', component: RoleViewVue}
+                { path: 'role', component: RoleViewVue},
+                { path: 'activity', component: ActivityViewVue},
+                { path: 'activity/remark/:id', component: RemarkViewVue}   // 备注页面，动态路由传参
+
             ]
         },
         {

@@ -1,5 +1,4 @@
 <template>
-
     <el-container>
         <!-- 左侧 -->
         <el-aside :width="isCollapse ? '64px' : '180px'">
@@ -31,7 +30,6 @@
                 <el-icon class="show" @click="showMenu">
                     <Fold />
                 </el-icon>
-
                 <!-- 用户操作 -->
                 <el-dropdown :hide-on-click="false">
                     <!-- 头像 -->
@@ -39,7 +37,6 @@
                         <el-avatar :size="30"
                             src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png" />
                     </span>
-
                     <!-- 下拉框内容 -->
                     <template #dropdown>
                         <el-dropdown-menu>
@@ -49,9 +46,7 @@
                         </el-dropdown-menu>
                     </template>
                 </el-dropdown>
-
             </el-header>
-
             <!-- 右侧主体 -->
             <el-main>
                 <router-view />
@@ -70,7 +65,7 @@ import { doLogout } from '../api/login';
 // 组合式api使用 router
 import { useRouter } from 'vue-router';
 import { removeToken } from '../utils/tokenUtils';
-import { messageBox, messageTip } from '../utils/elementUtils';
+import { messageBox } from '../utils/elementUtils';
 import { doGetUserAll } from '../api/user';
 // 是否折叠菜单
 const isCollapse = ref(false);
@@ -94,11 +89,6 @@ const logout = () => {
                     // 跳转至登录页
                     router.push('/login')
                 }
-                // 退出登录失败
-                else {
-                    // 弹出提示
-                    messageTip("退出登录失败", "error")
-                }
             })
         })
 }
@@ -108,6 +98,7 @@ const menuList = ref([])
 onMounted(async () => {
     await doGetUserAll().then((res) => {
         if (res.code === 200) {
+            // 菜单
             menuList.value = res.data.tmenuPermissions;
         }
     })

@@ -1,0 +1,236 @@
+<template>
+
+    <!-- 返回 -->
+    <el-button type="success" @click="goBack">返回</el-button>
+    <!-- 新增备注 -->
+    <el-button type="primary" @click="openEditOrAdd(null)" class="addButton">新增备注</el-button>
+    <br><br>
+
+    <!-- 表格 -->
+    <el-table :data="remarkList" style="width: 100%" ref="table">
+        <el-table-column :label="activityName" align="center">
+            <!-- 备注内容 -->
+            <el-table-column type="expand">
+                <template #default="props">
+                    <div class="dl">
+                        <p>{{ props.row.noteContent }}</p>
+                    </div>
+                </template>
+            </el-table-column>
+            <!-- 序号 -->
+            <el-table-column type="index" label="序号" align="center" width="65" />
+            <!-- 其他数据 -->
+            <el-table-column property="createTime" label="创建时间" align="center" />
+            <el-table-column property="createName" label="创建人" align="center" />
+            <el-table-column property="editTime" label="编辑时间" align="center" />
+            <el-table-column property="editName" label="编辑人" align="center" />
+            <!-- 操作使用插槽 -->
+            <el-table-column label="操作" align="center">
+                <template #default="scope">
+                    <el-button type="success" @click="openEditOrAdd(scope.row.id)" size="small">编辑</el-button>
+                    <el-button type="danger" @click="del(scope.row.id)" size="small">删除</el-button>
+                </template>
+            </el-table-column>
+        </el-table-column>
+        <!-- 使用插槽，当表格没有数据时显示 -->
+        <template #empty>
+            <img src="../assets/empty.png" class="img" />
+        </template>
+    </el-table>
+
+    <!-- 分页 -->
+    <el-pagination background layout="prev, pager, next" :total="total" :page-size="pageSize"
+        :hide-on-single-page="true" v-model:current-page="currentPage" @change="loadRemarkList" />
+
+    <!-- 添加 或 编辑 弹窗 -->
+    <el-dialog v-model="editOrAddDialog" :title="isEdit ? '编辑备注' : '新增备注'" width="550" @closed="closEeditOrAddDialog">
+        <!-- 搜索表单 -->
+        <el-form class="editOrAddForm" :model="remarkInfo" ref="editOrAddRef" :rules="editOrAddRules">
+            <el-form-item label="备注" prop="noteContent">
+                <el-input v-model="remarkInfo.noteContent" style="width: 450px" :rows="8" type="textarea"
+                    placeholder="请输入活动备注 " maxlength="300" show-word-limit="true" />
+            </el-form-item>
+        </el-form>
+        <div class="edit-add-button">
+            <el-button type="info" @click="cancle">取消</el-button>
+            <el-button type="primary" @click="editOrAddSubmit">提交</el-button>
+        </div>
+    </el-dialog>
+</template>
+
+<script setup>
+import { onMounted, ref } from "vue";
+import { useRoute, useRouter } from 'vue-router';
+import { doAddRemark, doDelRemark, doEditRemark, doGetRemark, doLoadRemarkList } from "../api/remark.js";
+import { doLoadActivity } from "../api/activity.js";
+import { messageTip } from "../utils/elementUtils.js";
+
+// 路由
+const route = useRoute();
+// 活动id
+const activityId = ref(0)
+// 备注列表
+const remarkList = ref([]);
+// 每页记录条数
+const pageSize = ref(10);
+// 当前页
+const currentPage = ref(1);
+// 总记录条数
+const total = ref(0);
+// 页面加载时
+onMounted(() => {
+    // 保存备注id
+    activityId.value = route.params.id;
+    // 加载备注列表
+    loadRemarkList();
+    // 加载活动信息
+    loadActivity();
+})
+const activityName = ref("")
+// 加载备注列表
+const loadRemarkList = async () => {
+    await doLoadRemarkList(activityId.value, currentPage.value, pageSize.value).then((res) => {
+        if (res.code === 200) {
+            remarkList.value = res.data.list;
+            total.value = res.data.total;
+        }
+    })
+}
+
+// 加载活动信息
+const loadActivity = async () => {
+    await doLoadActivity(activityId.value).then((res) => {
+        if (res.code === 200) {
+            activityName.value = res.data.name
+        }
+    })
+}
+
+// 新增或编辑备注
+// 表单数据
+const remarkInfo = ref({});
+// 弹窗开关
+const editOrAddDialog = ref(false);
+// 表单组件
+const editOrAddRef = ref(null)
+// 当前是否是编辑
+const isEdit = ref(false)
+// 表单校验
+const editOrAddRules = {
+    noteContent: [
+        { required: true, message: '请输入活动信息', trigger: 'blur' }
+    ]
+}
+// 点击新增或编辑备注
+const openEditOrAdd = (id) => {
+    if (id) {
+        isEdit.value = true;
+        getRemark(id);
+    } else {
+        isEdit.value = false;
+    }
+    editOrAddDialog.value = true;
+}
+
+// 获取单个备注信息
+const getRemark = async (id) => {
+    await doGetRemark(id).then((res) => {
+        if (res.code === 200) {
+            remarkInfo.value = res.data;
+        }
+    })
+}
+
+// 提交表单
+const editOrAddSubmit = async () => {
+    // 校验数据
+    await editOrAddRef.value.validate((isValidate) => {
+        if (isValidate) {
+            // 如果有id，那么就是编辑
+            if (remarkInfo.value.id) {
+                doEditRemark(remarkInfo.value).then((res) => {
+                    if (res.code === 200) {
+                        messageTip('编辑成功', 'success')
+                        editOrAddDialog.value = false;
+                        // 重新加载活动信息
+                        loadRemarkList();
+                    }
+                })
+            } else {
+                // 设置关联的市场活动
+                remarkInfo.value.activityId = activityId.value;
+                doAddRemark(remarkInfo.value).then((res) => {
+                    if (res.code === 200) {
+                        messageTip('录入成功', 'success')
+                        editOrAddDialog.value = false;
+                        // 重新加载活动信息
+                        loadRemarkList();
+                    }
+                })
+            }
+        }
+    })
+}
+
+// 取消按钮
+const cancle = () => {
+    editOrAddDialog.value = false;
+}
+
+// 关闭编辑或新增弹窗
+const closEeditOrAddDialog = () => {
+    // 表单置空
+    remarkInfo.value = {};
+    // 清空校验提示
+    editOrAddRef.value.resetFields();
+}
+
+
+// 删除
+const del = async (id) => {
+    await doDelRemark(id).then((res) => {
+        if (res.code === 200) {
+            messageTip('删除成功', 'success')
+            // 重新加载活动信息
+            loadRemarkList();
+        }
+    })
+}
+
+const router = useRouter();
+// 返回上一级
+const goBack = () => {
+    router.go(-1);
+}
+</script>
+
+<style scoped>
+.img {
+    width: 500px;
+}
+
+.dl {
+    margin-left: 50px;
+    letter-spacing: 1px;
+    text-indent: 30px;
+    width: 700px;
+}
+
+.addButton {
+    float: right;
+}
+
+.edit-add-button {
+    margin-left: 360px;
+    margin-top: 40px;
+}
+
+.el-pagination {
+    margin-top: 20px;
+    float: right;
+}
+
+.editOrAddForm {
+    margin-left: 10px;
+}
+</style>

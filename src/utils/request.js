@@ -48,7 +48,6 @@ request.interceptors.response.use(function (response) {
         messageTip(response.data.message, 'error')
         return
     }
-    // 不是token问题，让后面去处理
     else {
         return response.data;
     }

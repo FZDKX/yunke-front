@@ -1,13 +1,14 @@
 <template>
     <!-- 新增菜单 -->
-    <el-button type="primary" @click="showAddTop">新增一级菜单</el-button>
+    <el-button type="primary" @click="showAddTop" v-if="buttonList.has('perm:add')">新增一级菜单</el-button>
     <!-- 批量删除 -->
-    <el-button type="danger" @click="batchDel">批量删除</el-button>
+    <el-button type="danger" @click="batchDel" v-if="buttonList.has('perm:delete')">批量删除</el-button>
 
     <br><br>
 
     <el-table :data="permData" style="width: 100%" row-key="id" border lazy :load="loadSon" :indent="25" ref="table"
-        :tree-props="{ children: 'children', hasChildren: 'hasChildren' }" @expand-change="permExpandChange">
+        :tree-props="{ children: 'children', hasChildren: 'hasChildren' }" @expand-change="permExpandChange"
+        v-if="buttonList.has('perm:list')">
         <!-- 复选框 type = selection-->
         <el-table-column type="selection" />
         <!-- 数据 -->
@@ -25,9 +26,9 @@
         <el-table-column label="操作" align="center">
             <template #default="scpoe">
                 <el-button type="primary" size="small" @click="showAdd(scpoe.row)"
-                    v-if="scpoe.row.type === 'menu'">新增子节点</el-button>
-                <el-button type="success" size="small" @click="showEdit(scpoe.row)">编辑</el-button>
-                <el-button type="danger" size="small" @click="del(scpoe.row)">删除</el-button>
+                    v-if="scpoe.row.type === 'menu' && buttonList.has('perm:add')">新增子节点</el-button>
+                <el-button type="success" size="small" @click="showEdit(scpoe.row)" v-if="buttonList.has('perm:edit')">编辑</el-button>
+                <el-button type="danger" size="small" @click="del(scpoe.row)" v-if="buttonList.has('perm:delete')">删除</el-button>
             </template>
         </el-table-column>
         <!-- 使用插槽，当表格没有数据时显示 -->
@@ -112,15 +113,25 @@ import ElIconPicker from '../components/ElIconPicker.vue';
 import { onMounted, ref } from 'vue';
 import { doAddPerm, doBatchDel, doDel, doEditPerm, doLoadChildren, doLoadPerm, doLoadPermList } from '../api/permission';
 import { messageBox, messageTip } from '../utils/elementUtils';
+import { doGetUserPerm } from '../api/user';
 const permData = ref([]);
 const pageSize = ref(10);
 const currentPage = ref(1);
 const total = ref(0);
-
+// 按钮权限
+const buttonList = ref(new Set())
 // 页面加载时，加载顶层菜单
 onMounted(() => {
     loadPermList();
+    getUserPerm();
 })
+const getUserPerm = async () => {
+    await doGetUserPerm().then((res) => {
+        if(res.code === 200) {
+            buttonList.value = new Set(res.data)
+        }
+    })
+}
 
 // 类型格式化
 const typeFormat = (row) => {
