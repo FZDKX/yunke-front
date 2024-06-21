@@ -7,6 +7,7 @@ import PermissionViewVue from "../view/PermissionView.vue"
 import RoleViewVue from "../view/RoleView.vue";
 import ActivityViewVue from "../view/ActivityView.vue";
 import RemarkViewVue from "../view/RemarkView.vue";
+import ClueViewVue from "../view/ClueView.vue";
 
 
 //定义一个变量
@@ -32,7 +33,8 @@ let router = createRouter({
                 { path: 'permission', component: PermissionViewVue},
                 { path: 'role', component: RoleViewVue},
                 { path: 'activity', component: ActivityViewVue},
-                { path: 'activity/remark/:id', component: RemarkViewVue}   // 备注页面，动态路由传参
+                { path: 'activity/remark/:id', component: RemarkViewVue},   // 备注页面，动态路由传参
+                { path: 'clue', component: ClueViewVue}
 
             ]
         },
