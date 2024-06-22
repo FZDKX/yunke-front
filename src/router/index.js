@@ -6,8 +6,11 @@ import UserViewVue from "../view/UserView.vue";
 import PermissionViewVue from "../view/PermissionView.vue"
 import RoleViewVue from "../view/RoleView.vue";
 import ActivityViewVue from "../view/ActivityView.vue";
-import RemarkViewVue from "../view/RemarkView.vue";
 import ClueViewVue from "../view/ClueView.vue";
+import { hasToken } from "../utils/tokenUtils";
+import ActivityRemarkViewVue from "../view/ActivityRemarkView.vue";
+import ClueOperateVue from "../view/ClueOperate.vue";
+import ClueRemarkViewVue from "../view/ClueRemarkView.vue";
 
 
 //定义一个变量
@@ -28,13 +31,84 @@ let router = createRouter({
             path: '/dashboard',
             //路由路径所对应的页面
             component: DashboardViewVue,
+            name : 'dashboard',
+            meta: {
+                title: '首页',
+                keepAlive: false // 此组件 不需要 被缓存
+            },
             children: [
-                { path: 'user', component: UserViewVue },
-                { path: 'permission', component: PermissionViewVue},
-                { path: 'role', component: RoleViewVue},
-                { path: 'activity', component: ActivityViewVue},
-                { path: 'activity/remark/:id', component: RemarkViewVue},   // 备注页面，动态路由传参
-                { path: 'clue', component: ClueViewVue}
+                {
+                    path: 'user',
+                    component: UserViewVue,
+                    name : 'user',
+                    meta: {
+                        title: '用户页',
+                        keepAlive: false // 此组件 不需要 被缓存
+                    }
+                },
+                {
+                    path: 'permission',
+                    component: PermissionViewVue,
+                    name : 'permission',
+                    meta: {
+                        title: '权限页',
+                        keepAlive: false // 此组件 不需要 被缓存
+                    }
+                },
+                {
+                    path: 'role',
+                    component: RoleViewVue,
+                    name : 'role',
+                    meta: {
+                        title: '角色页',
+                        keepAlive: false // 此组件不需要被缓存
+                    }
+                },
+                {
+                    path: 'activity',
+                    component: ActivityViewVue,
+                    name: 'activity',
+                    meta: {
+                        title: '活动页',
+                        keepAlive: true // 此组件 可能需要 被缓存
+                    }
+                },
+                {
+                    path: 'activity/remark/:id',
+                    component: ActivityRemarkViewVue,
+                    name: 'activityRemark',
+                    meta: {
+                        title: '活动备注页',
+                        keepAlive: false // 此组件 不需要 被缓存
+                    }
+                },
+                {
+                    path: 'clue',
+                    component: ClueViewVue,
+                    name: 'clue',
+                    meta: {
+                        title: '线索页',
+                        keepAlive: true // 此组件 可能需要 被缓存
+                    }
+                },
+                {
+                    path: 'clue/operate/:id',
+                    component: ClueOperateVue,
+                    name: 'clueOperate',
+                    meta: {
+                        title: '线索操作页',
+                        keepAlive: false // 此组件 不需要 被缓存
+                    }
+                },
+                {
+                    path: 'clue/remark/:id',
+                    component: ClueRemarkViewVue,
+                    name: 'clueRemark',
+                    meta: {
+                        title: '线索备注页',
+                        keepAlive: false // 此组件 不需要 被缓存
+                    }
+                }
 
             ]
         },
@@ -46,5 +120,32 @@ let router = createRouter({
         }
     ]
 })
+
+// 配置路由前置首位
+router.beforeEach((to, from, next) => {
+    if (hasToken()) {
+        //如果存在token，那么放行
+        next()
+    } else {
+        //如果用户token不存在则跳转到login页面
+        if (to.path === '/login') {
+            next()
+        } else {
+            next('/login')
+        }
+    }
+})
+
+// 配置路由后置首位，进行组件缓存
+// 一定要再afterEach中判断而不是beforeEach
+// 因为beforeEach在点击返回之后获取到的值不准确，每返回一次，会获取到延后一次的to、history
+router.afterEach((to) => {
+    // 或者判断 to.forward , window.history.state.forward 是vue-router写入的，当返回或前进的时候才会有值
+    if (window.history.state && window.history.state.forward) {
+        to.meta.isBack = true;
+    } else {
+        to.meta.isBack = false;
+    }
+});
 //导出创建的路由对象
 export default router;

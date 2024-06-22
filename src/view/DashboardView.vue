@@ -1,4 +1,5 @@
 <template>
+
     <el-container>
         <!-- 左侧 -->
         <el-aside :width="isCollapse ? '64px' : '180px'">
@@ -49,7 +50,12 @@
             </el-header>
             <!-- 右侧主体 -->
             <el-main>
-                <router-view />
+                <router-view v-slot="{ Component }">
+                    <keep-alive>
+                        <component :is="Component" v-if="route.meta.keepAlive" :key="route.name" />
+                    </keep-alive>
+                    <component :is="Component" v-if="!route.meta.keepAlive" />
+                </router-view>
             </el-main>
             <!-- 右侧底部 -->
             <el-footer>
@@ -63,10 +69,12 @@
 import { onMounted, ref } from 'vue';
 import { doLogout } from '../api/login';
 // 组合式api使用 router
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { removeToken } from '../utils/tokenUtils';
 import { messageBox } from '../utils/elementUtils';
 import { doGetUserAll } from '../api/user';
+// 路由
+const route = useRoute();
 // 是否折叠菜单
 const isCollapse = ref(false);
 // 标题

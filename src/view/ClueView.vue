@@ -73,8 +73,10 @@
         <el-table-column property="needLoanStr" label="是否需要贷款" align="center" show-overflow-tooltip />
 
         <!-- 操作使用插槽 -->
-        <el-table-column label="操作" align="center">
+        <el-table-column label="操作" align="center" width="200">
             <template #default="scope">
+                <el-button type="primary" @click="openRemark(scope.row.id)" size="small"
+                v-if="buttonList.has('clue:edit')">备注</el-button>
                 <el-button type="success" @click="openEditOrAdd(scope.row.id)" size="small"
                     v-if="buttonList.has('clue:edit')">编辑</el-button>
                 <el-button type="danger" @click="del(scope.row.id)" size="small"
@@ -108,15 +110,16 @@
         <el-button type="primary" @click="uploadSubmit" class="uploadButton">上传</el-button>
     </el-dialog>
 
-    <!-- 新增或编辑 -->
+
+
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onActivated } from 'vue';
 import { doGetUserPerm } from '../api/user';
-import { doLoadCuleList, doUploadExcel } from '../api/clue';
+import { doDel, doLoadCuleList, doUploadExcel } from '../api/clue';
 import { messageTip } from '../utils/elementUtils';
-
+import { useRouter } from 'vue-router'
 // 加载活动列表
 // 列表数据
 const clueList = ref([])
@@ -137,6 +140,10 @@ onMounted(() => {
     getUserPerm();
     // 加载市场活动列表信息
     getClueList();
+})
+// 当组件被激活时触发
+onActivated(() => {
+    getClueList()
 })
 // 加载当前用户按钮信息
 const getUserPerm = async () => {
@@ -162,6 +169,7 @@ const openUpload = () => {
     uploadDialog.value = true;
 }
 
+
 // 文件上传
 // 上传组件
 const upload = ref(null)
@@ -185,7 +193,7 @@ const uploadFile = async (param) => {
     // 发送请求，上传文件
     await doUploadExcel(formData).then((res) => {
         if (res.code === 200) {
-            messageTip('导入成功','success')
+            messageTip('导入成功', 'success')
             getClueList();
             uploadDialog.value = false;
             fileList.value = [];
@@ -193,7 +201,6 @@ const uploadFile = async (param) => {
     })
 
 }
-
 // 超出文件上传个数时的回调
 const handleExceed = () => {
     messageTip('最多只能同时上传' + fileLimit + '个文件', 'warning')
@@ -224,6 +231,34 @@ const beforeUpload = (file) => {
 const uploadSubmit = () => {
     upload.value.submit();
     // 会自动调用 :http-request="" 绑定的方法
+}
+
+const router = useRouter();
+// 新增或编辑
+const openEditOrAdd = (id) => {
+    if (id) {
+        // 路由跳转 - 有id 编辑
+        router.push('/dashboard/clue/operate/' + `${id}`)
+    } else {
+        // 路由跳转 - 无id 新增
+        router.push('/dashboard/clue/operate/null')
+    }
+}
+
+// 删除
+const del = async (id) => {
+    await doDel(id).then((res) => {
+        if(res.code === 200){
+            messageTip('删除成功','success')
+            getClueList();
+        }
+    })
+}
+
+// 点击备注
+const openRemark = (id) => {
+    // 进行路由跳转 remark ，并传递参数
+    router.push('/dashboard/clue/remark/' + `${id}`)
 }
 </script>
 

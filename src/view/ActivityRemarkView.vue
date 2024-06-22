@@ -61,7 +61,7 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from 'vue-router';
-import { doAddRemark, doDelRemark, doEditRemark, doGetRemark, doLoadRemarkList } from "../api/remark.js";
+import { doAddRemark, doDelRemark, doEditRemark, doGetRemark, doLoadRemarkList } from "../api/activityRemark.js";
 import { doLoadActivity } from "../api/activity.js";
 import { messageTip } from "../utils/elementUtils.js";
 
@@ -200,7 +200,7 @@ const del = async (id) => {
 const router = useRouter();
 // 返回上一级
 const goBack = () => {
-    router.go(-1);
+    router.back();
 }
 </script>
 

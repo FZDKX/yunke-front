@@ -110,12 +110,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onActivated } from 'vue';
 import { doGetAllOwner, doGetUserPerm } from '../api/user';
 import { doAddActivity, doDelActivity, doDelBatchActivity, doEditActivity, doLoadActivity, doSearch } from '../api/activity';
 import { messageBox, messageTip } from '../utils/elementUtils';
 import { formatDateTime } from '../utils/date';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 
 // 加载活动列表
 // 列表数据
@@ -137,6 +137,22 @@ onMounted(() => {
     getUserPerm();
     // 加载市场活动列表信息
     getActivityList(1);
+})
+
+// 当前页面是否是第一次加载
+const isInit = ref(true)
+const route = useRoute();
+// 当组件被激活时触发
+onActivated(() => {
+    // 如果不是返回 并且 不是第一次初始化，那么就加载列表
+    if (!route.meta.isBack && !isInit.value) {
+        // 加载当前用户权限信息
+        getUserPerm();
+        // 加载市场活动列表信息
+        getActivityList(1);
+    }
+    isInit.value = false;
+    // 如果是返回 或者 是第一次初始化，那么不刷新
 })
 // 加载当前用户按钮信息
 const getUserPerm = async () => {
@@ -174,6 +190,7 @@ const getActivityList = (num) => {
             total.value = res.data.total;
         }
     })
+    isInit.value = false;
 }
 // 表单搜索
 // 表单数据
