@@ -9,3 +9,8 @@ export function doLoadClueDic() {
 export function doLoadClueRemarkDic() {
     return request.get("/api/dic/clueRemark")
 }
+
+// 加载产品列表
+export function doLoadCustomerDic() {
+    return request.get("/api/dic/customer")
+}

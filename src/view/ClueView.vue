@@ -47,8 +47,8 @@
                     <template #header>
                         <span>线索信息</span>
                     </template>
-                    <li v-if="props.row.stateStr" class="li">
-                        线索状态 : {{ props.row.stateStr }}
+                    <li v-if="props.row.needLoanStr" class="li">
+                        是否贷款 : {{ props.row.needLoanStr }}
                     </li>
                     <li v-if="props.row.sourceStr" class="li">
                         线索来源 : {{ props.row.sourceStr }}
@@ -66,17 +66,19 @@
         <el-table-column property="ownerName" label="负责人" align="center" width="100" />
         <el-table-column property="activityName" label="活动名称" align="center" show-overflow-tooltip />
         <el-table-column property="fullName" label="姓名" align="center" show-overflow-tooltip width="100" />
-        <el-table-column property="appellationStr" label="称呼" align="center" show-overflow-tooltip />
-        <el-table-column property="phone" label="手机号" align="center" show-overflow-tooltip />
+        <el-table-column property="appellationStr" label="称呼" align="center" show-overflow-tooltip width="80" />
+        <el-table-column property="phone" label="手机号" align="center" show-overflow-tooltip width="130" />
         <el-table-column property="intentionProductStr" label="意向产品" align="center" show-overflow-tooltip />
-        <el-table-column property="intentionStateStr" label="意向状态" align="center" show-overflow-tooltip />
-        <el-table-column property="needLoanStr" label="是否需要贷款" align="center" show-overflow-tooltip />
+        <el-table-column property="intentionStateStr" label="意向状态" align="center" show-overflow-tooltip width="110" />
+        <el-table-column property="stateStr" label="线索状态" align="center" show-overflow-tooltip width="100" />
 
         <!-- 操作使用插槽 -->
-        <el-table-column label="操作" align="center" width="200">
+        <el-table-column label="操作" align="center" width="300">
             <template #default="scope">
+                <el-button type="primary" @click="convert(scope.row.id)" plain size="small"
+                    v-if="scope.row.state !== -1">转为客户</el-button>
                 <el-button type="primary" @click="openRemark(scope.row.id)" size="small"
-                v-if="buttonList.has('clue:edit')">备注</el-button>
+                    v-if="buttonList.has('clue:edit')">备注</el-button>
                 <el-button type="success" @click="openEditOrAdd(scope.row.id)" size="small"
                     v-if="buttonList.has('clue:edit')">编辑</el-button>
                 <el-button type="danger" @click="del(scope.row.id)" size="small"
@@ -110,6 +112,36 @@
         <el-button type="primary" @click="uploadSubmit" class="uploadButton">上传</el-button>
     </el-dialog>
 
+    <!-- 转换客户弹窗 -->
+    <el-dialog v-model="convertDialog" title="转为客户" width="550" @closed="closConvertDialog">
+        <!-- 表单 -->
+        <el-form class="convertForm" :model="customer" label-width="80px" ref="convertRef" :rules="customerRules">
+            <el-form-item label="意向产品" prop="product">
+                <el-select v-model="customer.product" placeholder="选择意向产品" style="width: 230px;">
+                    <el-option v-for="product in dic.intentionProductList" :key="product.id" :label="product.name"
+                        :value="product.id" />
+                </el-select>
+            </el-form-item>
+            <el-form-item label="意向状态" prop="intentionState">
+                <el-select v-model="customer.intentionState" placeholder="选择意向状态" style="width: 230px;">
+                    <el-option v-for="item in dic.intentionStateList" :key="item.id" :label="item.typeValue"
+                        :value="item.id" />
+                </el-select>
+            </el-form-item>
+            <el-form-item label="下次联系" prop="nextContactTime">
+                <el-date-picker v-model="customer.nextContactTime" type="date" placeholder="下次联系时间"
+                    style="width: 230px;" />
+            </el-form-item>
+            <el-form-item label="客户描述" prop="description">
+                <el-input v-model="customer.description" style="width: 300px" :rows="5" type="textarea"
+                    placeholder="请输入客户描述" />
+            </el-form-item>
+        </el-form>
+        <div class="convertButton">
+            <el-button type="info" @click="cancle">取消</el-button>
+            <el-button type="primary" @click="convertSubmit">转换</el-button>
+        </div>
+    </el-dialog>
 
 
 </template>
@@ -118,8 +150,11 @@
 import { ref, onMounted, onActivated } from 'vue';
 import { doGetUserPerm } from '../api/user';
 import { doDel, doLoadCuleList, doUploadExcel } from '../api/clue';
-import { messageTip } from '../utils/elementUtils';
-import { useRouter } from 'vue-router'
+import { messageBox, messageTip } from '../utils/elementUtils';
+import { useRouter, useRoute } from 'vue-router'
+import { doLoadCustomerDic } from '../api/dic';
+import { doAddCustomer } from '../api/customer';
+import { formatDateTime } from '../utils/date';
 // 加载活动列表
 // 列表数据
 const clueList = ref([])
@@ -142,8 +177,20 @@ onMounted(() => {
     getClueList();
 })
 // 当组件被激活时触发
+// 当前页面是否是第一次加载
+const isInit = ref(true)
+const route = useRoute();
 onActivated(() => {
-    getClueList()
+    // 如果不是返回 并且 不是第一次初始化，那么就加载列表
+    if (!route.meta.isBack && !isInit.value) {
+        // 加载当前用户权限信息
+        getUserPerm();
+        // 加载市场活动列表信息
+        getClueList()
+    }
+    isInit.value = false;
+    // 如果是返回 或者 是第一次初始化，那么不刷新
+
 })
 // 加载当前用户按钮信息
 const getUserPerm = async () => {
@@ -247,11 +294,13 @@ const openEditOrAdd = (id) => {
 
 // 删除
 const del = async (id) => {
-    await doDel(id).then((res) => {
-        if(res.code === 200){
-            messageTip('删除成功','success')
-            getClueList();
-        }
+    messageBox("是否删除删除?").then(async () => {
+        await doDel(id).then((res) => {
+            if (res.code === 200) {
+                messageTip('删除成功', 'success')
+                getClueList();
+            }
+        })
     })
 }
 
@@ -259,6 +308,77 @@ const del = async (id) => {
 const openRemark = (id) => {
     // 进行路由跳转 remark ，并传递参数
     router.push('/dashboard/clue/remark/' + `${id}`)
+}
+
+
+// 转换客户
+// 弹窗开关
+const convertDialog = ref(false);
+// 表单数据
+const customer = ref({});
+// 组件
+const convertRef = ref(null);
+// 产品列表
+const dic = ref({})
+// 验证规则
+const customerRules = {
+    product: [
+        { required: true, message: '请选择意向产品', trigger: 'blur' }
+    ],
+    nextContactTime: [
+        { required: true, message: '请选择下次联系时间', trigger: 'blur' }
+    ],
+    description: [
+        { required: true, message: '请输入客户描述', trigger: 'blur' }
+    ],
+    intentionState: [
+        { required: true, message: '请选择意向状态', trigger: 'blur' }
+    ]
+};
+
+// 点击转换客户
+const convert = (id) => {
+    // 加载产品信息
+    loadProductList();
+    // 打开弹窗
+    convertDialog.value = true;
+    // 设置线索id
+    customer.value.clueId = id;
+}
+// 取消转换客户
+const cancle = () => {
+    convertDialog.value = false;
+}
+// 获取产品列表
+const loadProductList = async () => {
+    await doLoadCustomerDic().then((res) => {
+        if (res.code === 200) {
+            dic.value = res.data;
+        }
+    })
+}
+// 关闭弹窗之后
+const closConvertDialog = () => {
+    customer.value = {}
+    dic.value = {}
+}
+// 提交转换客户
+const convertSubmit = async () => {
+    // 校验数据
+    await convertRef.value.validate((isValidate) => {
+        if (isValidate) {
+            customer.value.nextContactTime = formatDateTime(customer.value.nextContactTime)
+            doAddCustomer(customer.value).then((res) => {
+                if (res.code === 200) {
+                    messageTip('转换成功', 'success')
+                    // 关闭弹窗
+                    convertDialog.value = false;
+                    // 刷新页面
+                    getClueList();
+                }
+            })
+        }
+    })
 }
 </script>
 
@@ -287,5 +407,14 @@ const openRemark = (id) => {
     margin-left: 400px;
     margin-top: 50px;
 
+}
+
+.convertForm {
+    margin-left: 60px;
+}
+
+.convertButton {
+    margin-left: 360px;
+    margin-top: 30px;
 }
 </style>

@@ -38,7 +38,7 @@
 
     <!-- 分页 -->
     <el-pagination background layout="prev, pager, next" :total="total" :page-size="pageSize"
-        :hide-on-single-page="true" v-model:current-page="currentPage" @change="loadClueRemarkList" />
+        :hide-on-single-page="true" v-model:current-page="currentPage" @change="loadCustomerRemarkList" />
 
     <!-- 添加 或 编辑 弹窗 -->
     <el-dialog v-model="editOrAddDialog" :title="isEdit ? '编辑备注' : '新增备注'" width="550" @closed="closEeditOrAddDialog">
@@ -54,7 +54,7 @@
             <!-- 备注 -->
             <el-form-item label="备注" prop="noteContent">
                 <el-input v-model="remarkInfo.noteContent" style="width: 450px" :rows="8" type="textarea"
-                    placeholder="请输入活动备注 " maxlength="300" show-word-limit="true" />
+                    placeholder="请输入备注 " maxlength="300" show-word-limit="true" />
             </el-form-item>
         </el-form>
         <div class="edit-add-button">
@@ -68,13 +68,13 @@
 import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from 'vue-router';
 import { messageBox, messageTip } from "../utils/elementUtils.js";
-import { doAddClueRemark, doDelClueRemark, doEditClueRemark, doGetClueRemark, doLoadClueRemarkList } from "../api/clueRemark.js";
+import { doAddCustomerRemark, doDelCustomerRemark, doEditCustomerRemark, doGetCustomerRemark, doLoadCustomerRemarkList } from "../api/customerRemark.js";
 import { doLoadClueRemarkDic } from "../api/dic.js";
 
 // 路由
 const route = useRoute();
 // 活动id
-const clueId = ref(0)
+const customerId = ref(0)
 // 备注列表
 const remarkList = ref([]);
 // 每页记录条数
@@ -85,14 +85,14 @@ const currentPage = ref(1);
 const total = ref(0);
 // 页面加载时
 onMounted(() => {
-    // 保存线索id
-    clueId.value = route.params.id;
+    // 保存客户id
+    customerId.value = route.params.id;
     // 加载备注列表
-    loadClueRemarkList();
+    loadCustomerRemarkList();
 })
 // 加载备注列表
-const loadClueRemarkList = async () => {
-    await doLoadClueRemarkList(clueId.value, currentPage.value, pageSize.value).then((res) => {
+const loadCustomerRemarkList = async () => {
+    await doLoadCustomerRemarkList(customerId.value, currentPage.value, pageSize.value).then((res) => {
         if (res.code === 200) {
             remarkList.value = res.data.list;
             total.value = res.data.total;
@@ -124,7 +124,7 @@ const openEditOrAdd = (id) => {
     loadClueRemarkDic();
     if (id) {
         isEdit.value = true;
-        getClueRemark(id);
+        getCustomerRemark(id);
     } else {
         isEdit.value = false;
     }
@@ -142,8 +142,8 @@ const loadClueRemarkDic = async () => {
 
 
 // 获取单个备注信息
-const getClueRemark = async (id) => {
-    await doGetClueRemark(id).then((res) => {
+const getCustomerRemark = async (id) => {
+    await doGetCustomerRemark(id).then((res) => {
         if (res.code === 200) {
             remarkInfo.value = res.data;
         }
@@ -157,23 +157,23 @@ const editOrAddSubmit = async () => {
         if (isValidate) {
             // 如果有id，那么就是编辑
             if (remarkInfo.value.id) {
-                doEditClueRemark(remarkInfo.value).then((res) => {
+                doEditCustomerRemark(remarkInfo.value).then((res) => {
                     if (res.code === 200) {
                         messageTip('编辑成功', 'success')
                         editOrAddDialog.value = false;
                         // 重新加载活动信息
-                        loadClueRemarkList();
+                        loadCustomerRemarkList();
                     }
                 })
             } else {
                 // 设置关联的市场活动
-                remarkInfo.value.clueId = clueId.value;
-                doAddClueRemark(remarkInfo.value).then((res) => {
+                remarkInfo.value.customerId = customerId.value;
+                doAddCustomerRemark(remarkInfo.value).then((res) => {
                     if (res.code === 200) {
                         messageTip('录入成功', 'success')
                         editOrAddDialog.value = false;
                         // 重新加载活动信息
-                        loadClueRemarkList();
+                        loadCustomerRemarkList();
                     }
                 })
             }
@@ -198,11 +198,11 @@ const closEeditOrAddDialog = () => {
 // 删除
 const del = async (id) => {
     messageBox("是否删除删除?").then(async () => {
-        await doDelClueRemark(id).then((res) => {
+        await doDelCustomerRemark(id).then((res) => {
             if (res.code === 200) {
                 messageTip('删除成功', 'success')
                 // 重新加载活动信息
-                loadClueRemarkList();
+                loadCustomerRemarkList();
             }
         })
     })

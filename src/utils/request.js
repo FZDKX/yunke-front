@@ -33,24 +33,31 @@ request.interceptors.request.use(function (config) {
 
 // 给request添加响应拦截器
 request.interceptors.response.use(function (response) {
-    // 获取响应码
-    const code = response.data.code;
-    // token问题，直接跳转登录页
-    if (code >= 900 && code < 910) {
-        messageTip('登录信息失效，请重新登录', 'error')
-        setTimeout(function () {
-            //1秒后执行刷新
-            window.location.href = '/login'
-        }, 1500); //单位是毫秒
-        return
+    // 如果有code
+    if (response.data.code) {
+        // 获取响应码
+        var code = response.data.code;
+        // token问题，直接跳转登录页
+        if (code >= 900 && code < 910) {
+            messageTip('登录信息失效，请重新登录', 'error')
+            setTimeout(function () {
+                //1秒后执行刷新
+                window.location.href = '/login'
+            }, 1500); //单位是毫秒
+            return
+        }
+        else if (code !== 200) {
+            messageTip(response.data.message, 'error')
+        }
+        else {
+            return response.data;
+        }
     }
-    else if (code !== 200) {
-        messageTip(response.data.message, 'error')
-        return
-    }
+    // 如果没有code
     else {
-        return response.data;
+        return response;
     }
+
 }, (error) => {
     // 对请求错误做些什么
     return Promise.reject(error);

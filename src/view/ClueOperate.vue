@@ -145,13 +145,15 @@ const editOrAddRef = ref(null)
 const editOrAddRules = {
     ownerId: { required: true, message: '请选择负责人', trigger: 'blur' },
     activityId: { required: true, message: '请选择市场活动', trigger: 'blur' },
-    fullName: { required: true, message: '请输入客户姓名', trigger: 'blur' },
+    fullName: [
+        { required: true, message: '请输入客户姓名', trigger: 'blur' },
+        { pattern: /^[\u4e00-\u9fa5]{1,6}/, message: '姓名为1~6个汉字', trigger: 'blur' }
+    ],
+    phone: [
+        { required: true, message: '请输入手机号', trigger: 'blur' },
+        { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' }
+    ],
     appellation: { required: true, message: '请选择称呼', trigger: 'blur' },
-    fullName: { required: true, message: '请输入手机号', trigger: 'blur' },
-    intentionState: { required: true, message: '请选择意向状态', trigger: 'blur' },
-    intentionProduct: { required: true, message: '请选择意向产品', trigger: 'blur' },
-    state: { required: true, message: '请选择线索状态', trigger: 'blur' },
-    source: { required: true, message: '请选择线索来源', trigger: 'blur' },
     description: { required: true, message: '请输入线索描述', trigger: 'blur' }
 }
 // 当前是否是编辑

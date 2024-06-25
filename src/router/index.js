@@ -11,6 +11,8 @@ import { hasToken } from "../utils/tokenUtils";
 import ActivityRemarkViewVue from "../view/ActivityRemarkView.vue";
 import ClueOperateVue from "../view/ClueOperate.vue";
 import ClueRemarkViewVue from "../view/ClueRemarkView.vue";
+import CustomerViewVue from "../view/CustomerView.vue";
+import CustomerRemarkViewVue from "../view/CustomerRemarkView.vue";
 
 
 //定义一个变量
@@ -106,6 +108,24 @@ let router = createRouter({
                     name: 'clueRemark',
                     meta: {
                         title: '线索备注页',
+                        keepAlive: false // 此组件 不需要 被缓存
+                    }
+                },
+                {
+                    path: 'customer',
+                    component: CustomerViewVue,
+                    name: 'customer',
+                    meta: {
+                        title: '客户管理页',
+                        keepAlive: true // 此组件 不需要 被缓存
+                    }
+                },
+                {
+                    path: 'customer/remark/:id',
+                    component: CustomerRemarkViewVue,
+                    name: 'customerRemark',
+                    meta: {
+                        title: '客户备注页',
                         keepAlive: false // 此组件 不需要 被缓存
                     }
                 }

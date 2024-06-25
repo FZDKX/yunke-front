@@ -10,8 +10,8 @@
 
     <br><br>
     <!-- 表格 -->
-    <el-table :data="activityList" style="width: 100%" @selection-change="handleSelectionChange" :stripe="true"
-        ref="table" v-if="buttonList.has('activity:list')">
+    <el-table :data="activityList" style="width: 100%" :stripe="true" ref="table"
+        v-if="buttonList.has('activity:list')">
         <!-- 复选框 type = selection-->
         <el-table-column type="selection" />
         <!-- 序号，type = index , 自动递增 -->
