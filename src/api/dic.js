@@ -6,11 +6,16 @@ export function doLoadClueDic() {
 }
 
 // 加载线索备注字典
-export function doLoadClueRemarkDic() {
-    return request.get("/api/dic/clueRemark")
+export function doLoadRemarkDic() {
+    return request.get("/api/dic/remark")
 }
 
 // 加载产品列表
 export function doLoadCustomerDic() {
     return request.get("/api/dic/customer")
+}
+
+
+export function doGetTranStageList() {
+    return request.get("/api/dic/stage")
 }

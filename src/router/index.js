@@ -13,6 +13,9 @@ import ClueOperateVue from "../view/ClueOperate.vue";
 import ClueRemarkViewVue from "../view/ClueRemarkView.vue";
 import CustomerViewVue from "../view/CustomerView.vue";
 import CustomerRemarkViewVue from "../view/CustomerRemarkView.vue";
+import TranViewVue from "../view/TranView.vue";
+import TranRemarkViewVue from "../view/TranRemarkView.vue";
+import ProductViewVue from "../view/ProductView.vue";
 
 
 //定义一个变量
@@ -126,6 +129,33 @@ let router = createRouter({
                     name: 'customerRemark',
                     meta: {
                         title: '客户备注页',
+                        keepAlive: false // 此组件 不需要 被缓存
+                    }
+                },
+                {
+                    path: 'tran',
+                    component: TranViewVue,
+                    name: 'tran',
+                    meta: {
+                        title: '交易页',
+                        keepAlive: true // 此组件 不需要 被缓存
+                    }
+                },
+                {
+                    path: 'tran/remark/:id',
+                    component: TranRemarkViewVue,
+                    name: 'tranRemark',
+                    meta: {
+                        title: '交易页',
+                        keepAlive: false // 此组件 不需要 被缓存
+                    }
+                },
+                {
+                    path: 'product',
+                    component: ProductViewVue,
+                    name: 'product',
+                    meta: {
+                        title: '产品页',
                         keepAlive: false // 此组件 不需要 被缓存
                     }
                 }

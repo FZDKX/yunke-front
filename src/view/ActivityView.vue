@@ -144,15 +144,16 @@ const isInit = ref(true)
 const route = useRoute();
 // 当组件被激活时触发
 onActivated(() => {
-    // 如果不是返回 并且 不是第一次初始化，那么就加载列表
+    console.log('onActivated')
+    // 如果不是返回 并且 不是第一次初始化，那么就重新加载列表
     if (!route.meta.isBack && !isInit.value) {
         // 加载当前用户权限信息
         getUserPerm();
         // 加载市场活动列表信息
         getActivityList(1);
     }
+    // 页面已经刷新了，设置为false
     isInit.value = false;
-    // 如果是返回 或者 是第一次初始化，那么不刷新
 })
 // 加载当前用户按钮信息
 const getUserPerm = async () => {
@@ -180,6 +181,7 @@ const getActivityList = (num) => {
     // 初始化，当前页与分页
     if (num > 0) {
         activitySearchData.value.pageNum = num;
+        currentPage.value = num;
     } else {
         activitySearchData.value.pageNum = currentPage.value;
     }
@@ -190,7 +192,6 @@ const getActivityList = (num) => {
             total.value = res.data.total;
         }
     })
-    isInit.value = false;
 }
 // 表单搜索
 // 表单数据

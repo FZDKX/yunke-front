@@ -77,6 +77,7 @@
             <template #default="scope">
                 <el-button type="primary" @click="convert(scope.row.id)" plain size="small"
                     v-if="scope.row.state !== -1">转为客户</el-button>
+                <el-button type="danger" plain disabled size="small" v-else>已转客户</el-button>
                 <el-button type="primary" @click="openRemark(scope.row.id)" size="small"
                     v-if="buttonList.has('clue:edit')">备注</el-button>
                 <el-button type="success" @click="openEditOrAdd(scope.row.id)" size="small"
@@ -171,6 +172,7 @@ const total = ref(0);
 const buttonList = ref(new Set())
 // 页面加载时，加载用户列表
 onMounted(() => {
+    console.log('onMounted')
     // 加载当前用户权限信息
     getUserPerm();
     // 加载市场活动列表信息
@@ -183,14 +185,16 @@ const route = useRoute();
 onActivated(() => {
     // 如果不是返回 并且 不是第一次初始化，那么就加载列表
     if (!route.meta.isBack && !isInit.value) {
+        console.log('重新加载')
         // 加载当前用户权限信息
         getUserPerm();
+        // 设置当前页
+        currentPage.value = 1;
         // 加载市场活动列表信息
         getClueList()
     }
+    // 页面已经刷新了，设置为false
     isInit.value = false;
-    // 如果是返回 或者 是第一次初始化，那么不刷新
-
 })
 // 加载当前用户按钮信息
 const getUserPerm = async () => {

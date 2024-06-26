@@ -69,7 +69,7 @@ import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from 'vue-router';
 import { messageBox, messageTip } from "../utils/elementUtils.js";
 import { doAddClueRemark, doDelClueRemark, doEditClueRemark, doGetClueRemark, doLoadClueRemarkList } from "../api/clueRemark.js";
-import { doLoadClueRemarkDic } from "../api/dic.js";
+import { doLoadRemarkDic } from "../api/dic.js";
 
 // 路由
 const route = useRoute();
@@ -121,7 +121,7 @@ const editOrAddRules = {
 // 点击新增或编辑备注
 const openEditOrAdd = (id) => {
     // 加载字典
-    loadClueRemarkDic();
+    loadRemarkDic();
     if (id) {
         isEdit.value = true;
         getClueRemark(id);
@@ -132,8 +132,8 @@ const openEditOrAdd = (id) => {
 }
 
 // 获取字典信息
-const loadClueRemarkDic = async () => {
-    await doLoadClueRemarkDic().then((res) => {
+const loadRemarkDic = async () => {
+    await doLoadRemarkDic().then((res) => {
         if (res.code === 200) {
             dic.value = res.data;
         }

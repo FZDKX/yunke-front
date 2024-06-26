@@ -67,8 +67,9 @@
         <!-- 操作使用插槽 -->
         <el-table-column label="操作" align="center" width="300">
             <template #default="scope">
-                <el-button type="primary" @click="convert(scope.row.id)" size="small"
-                    v-if="scope.row.state !== -1">转为交易</el-button>
+                <el-button type="primary" plain @click="convert(scope.row.id)" size="small"
+                    v-if="scope.row.state == 0">转为交易</el-button>
+                <el-button type="danger" plain size="small" v-else disabled>已转交易</el-button>
                 <el-button type="primary" @click="openRemark(scope.row.id)" size="small"
                     v-if="buttonList.has('clue:edit')">备注</el-button>
                 <el-button type="success" @click="openEdit(scope.row.id)" size="small"
@@ -119,6 +120,28 @@
         </div>
     </el-dialog>
 
+     <!-- 转换交易弹窗 -->
+     <el-dialog v-model="convertDialog" title="转为交易" width="550" @closed="closConvertDialog">
+        <!-- 表单 -->
+        <el-form class="convertForm" :model="tran" label-width="120px" ref="convertRef" :rules="tranRules">
+            <el-form-item label="预计成交日期" prop="expectedDate">
+                <el-date-picker v-model="tran.expectedDate" type="date" placeholder="预计成交日期"
+                    style="width: 300px;" />
+            </el-form-item>
+            <el-form-item label="下次联系时间" prop="nextContactTime">
+                <el-date-picker v-model="tran.nextContactTime" type="date" placeholder="下次联系时间"
+                    style="width: 300px;" />
+            </el-form-item>
+            <el-form-item label="客户描述" prop="description">
+                <el-input v-model="tran.description" style="width: 300px" :rows="5" type="textarea"
+                    placeholder="请输入交易描述" />
+            </el-form-item>
+        </el-form>
+        <div class="convertButton">
+            <el-button type="info" @click="cancleTran">取消</el-button>
+            <el-button type="primary" @click="convertSubmit">转换</el-button>
+        </div>
+    </el-dialog>
 </template>
 
 <script setup>
@@ -130,6 +153,7 @@ import { formatDateTime } from '../utils/date';
 import { messageBox, messageTip } from '../utils/elementUtils';
 import { useRouter, useRoute } from 'vue-router'
 import { downLoadFile } from '../utils/downLoad';
+import { doAddTran } from '../api/tran';
 // 加载客户列表
 // 列表数据
 const customerList = ref([])
@@ -308,6 +332,65 @@ const exportSelect = async () => {
         messageTip('未选择导出客户', 'warning')
     }
 }
+
+
+// 点击转为交易
+// 弹窗开关
+const convertDialog = ref(false);
+// 表单数据
+const tran = ref({});
+// 组件
+const convertRef = ref(null);
+// 验证规则
+const tranRules = {
+    expectedDate: [
+        { required: true, message: '请选择预计成交时间', trigger: 'blur' }
+    ],
+    nextContactTime: [
+        { required: true, message: '请选择下次联系时间', trigger: 'blur' }
+    ],
+    description: [
+        { required: true, message: '请输入交易描述', trigger: 'blur' }
+    ]
+};
+
+// 点击转为交易按钮
+const convert = (id) => {
+    // 保存客户id
+    tran.value.customerId = id;
+    // 打开弹窗
+    convertDialog.value = true;
+}
+
+// 取消转换客户
+const cancleTran = () => {
+    convertDialog.value = false;
+}
+
+// 关闭弹窗之后
+const closConvertDialog = () => {
+    tran.value = {}
+}
+
+// 提交转为交易
+const convertSubmit = async () => {
+    // 校验数据
+    await convertRef.value.validate((isValidate) => {
+        if (isValidate) {
+            tran.value.nextContactTime = formatDateTime(tran.value.nextContactTime)
+            tran.value.expectedDate = formatDateTime(tran.value.expectedDate)
+            doAddTran(tran.value).then((res) => {
+                if (res.code === 200) {
+                    messageTip('转换成功', 'success')
+                    // 关闭弹窗
+                    convertDialog.value = false;
+                    // 刷新页面
+                    getCustomerList();
+                }
+            })
+        }
+    })
+}
 </script>
 
 <style scoped>
@@ -336,6 +419,15 @@ const exportSelect = async () => {
 }
 
 .editButton {
+    margin-left: 360px;
+    margin-top: 30px;
+}
+
+.convertForm {
+    margin-left: 35px;
+}
+
+.convertButton {
     margin-left: 360px;
     margin-top: 30px;
 }
