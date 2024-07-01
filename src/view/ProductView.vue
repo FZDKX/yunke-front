@@ -168,6 +168,8 @@ const getProduct = async (id) => {
 // 关闭弹窗事件
 const closeDialog = () => {
     productInfo.value = {}
+     // 清空校验提示
+     editOrAddRef.value.resetFields();
 }
 
 // 取消

@@ -281,6 +281,8 @@ const updateCancleSubmit = async () => {
 const closeNextDialog = () => {
     nextTran.value = {};
     stageList.value = {};
+     // 清空校验提示
+     nextTranRef.value.resetFields();
 }
 // 点击取消按钮
 const updateCancle = () => {

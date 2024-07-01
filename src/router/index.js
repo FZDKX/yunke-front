@@ -16,6 +16,8 @@ import CustomerRemarkViewVue from "../view/CustomerRemarkView.vue";
 import TranViewVue from "../view/TranView.vue";
 import TranRemarkViewVue from "../view/TranRemarkView.vue";
 import ProductViewVue from "../view/ProductView.vue";
+import DicTypeViewVue from "../view/DicTypeView.vue";
+import DicValueViewVue from "../view/DicValueView.vue";
 
 
 //定义一个变量
@@ -36,7 +38,7 @@ let router = createRouter({
             path: '/dashboard',
             //路由路径所对应的页面
             component: DashboardViewVue,
-            name : 'dashboard',
+            name: 'dashboard',
             meta: {
                 title: '首页',
                 keepAlive: false // 此组件 不需要 被缓存
@@ -45,7 +47,7 @@ let router = createRouter({
                 {
                     path: 'user',
                     component: UserViewVue,
-                    name : 'user',
+                    name: 'user',
                     meta: {
                         title: '用户页',
                         keepAlive: false // 此组件 不需要 被缓存
@@ -54,7 +56,7 @@ let router = createRouter({
                 {
                     path: 'permission',
                     component: PermissionViewVue,
-                    name : 'permission',
+                    name: 'permission',
                     meta: {
                         title: '权限页',
                         keepAlive: false // 此组件 不需要 被缓存
@@ -63,7 +65,7 @@ let router = createRouter({
                 {
                     path: 'role',
                     component: RoleViewVue,
-                    name : 'role',
+                    name: 'role',
                     meta: {
                         title: '角色页',
                         keepAlive: false // 此组件不需要被缓存
@@ -156,6 +158,24 @@ let router = createRouter({
                     name: 'product',
                     meta: {
                         title: '产品页',
+                        keepAlive: false // 此组件 不需要 被缓存
+                    }
+                },
+                {
+                    path: 'dictype',
+                    component: DicTypeViewVue,
+                    name: 'dictype',
+                    meta: {
+                        title: '字典类型页',
+                        keepAlive: false // 此组件 不需要 被缓存
+                    }
+                },
+                {
+                    path: 'dicvalue',
+                    component: DicValueViewVue,
+                    name: 'dicvalue',
+                    meta: {
+                        title: '字典类型页',
                         keepAlive: false // 此组件 不需要 被缓存
                     }
                 }

@@ -268,6 +268,8 @@ const cancle = () => {
 const closeEditDialog = () => {
     customer.value = {}
     dic.value = {}
+    // 清空校验提示
+    customerRef.value.resetFields();
 }
 // 提交编辑
 const editSubmit = async () => {
@@ -370,6 +372,8 @@ const cancleTran = () => {
 // 关闭弹窗之后
 const closConvertDialog = () => {
     tran.value = {}
+    // 清空校验提示
+    convertRef.value.resetFields();
 }
 
 // 提交转为交易
